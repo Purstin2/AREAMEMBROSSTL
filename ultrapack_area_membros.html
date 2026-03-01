@@ -224,6 +224,27 @@ footer a { color: #2DB56F; text-decoration: none; }
 }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .section { animation: fadeIn 0.4s ease both; }
+/* PRODUCTS */
+.product-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+.product-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.product-name { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+.product-id-badge { font-size: 10px; color: var(--text-muted); background: rgba(255,255,255,0.04); padding: 2px 8px; border-radius: 10px; }
+.product-courses-wrap { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.product-course-tag { font-size: 10px; padding: 2px 8px; background: rgba(232,124,30,0.1); border: 1px solid rgba(232,124,30,0.25); border-radius: 10px; color: var(--accent-orange); }
+.course-checkbox-list { max-height: 220px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 8px; background: rgba(255,255,255,0.02); }
+.course-checkbox-item { display: flex; align-items: center; gap: 8px; padding: 5px 4px; cursor: pointer; border-radius: 4px; }
+.course-checkbox-item:hover { background: rgba(255,255,255,0.04); }
+.course-checkbox-item input[type=checkbox] { accent-color: var(--accent-orange); width: 14px; height: 14px; flex-shrink: 0; }
+.course-checkbox-item span { font-size: 12px; color: var(--text-secondary); }
+/* WEBHOOK LOG */
+.wh-log-item { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; font-size: 12px; }
+.wh-log-item.ok { border-color: rgba(45,181,111,0.35); background: rgba(45,181,111,0.04); }
+.wh-log-item.err { border-color: rgba(232,48,48,0.35); background: rgba(232,48,48,0.04); }
+.wh-log-meta { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+.wh-log-platform { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; padding: 1px 7px; border-radius: 4px; background: rgba(232,124,30,0.12); color: var(--accent-orange); }
+.wh-log-date { font-size: 10px; color: var(--text-muted); margin-left: auto; }
+.wh-log-email { color: var(--text-primary); font-weight: 600; }
+.wh-log-product { color: var(--text-secondary); font-size: 11px; }
 </style>
 </head>
 <body>
@@ -335,6 +356,8 @@ footer a { color: #2DB56F; text-decoration: none; }
     <div class="admin-tab" onclick="switchTab('tab-email')">E-MAIL</div>
     <div class="admin-tab" onclick="switchTab('tab-acesso')">ACESSO</div>
     <div class="admin-tab" onclick="switchTab('tab-integ')">INTEG.</div>
+    <div class="admin-tab" onclick="switchTab('tab-produtos')">PRODUTOS</div>
+    <div class="admin-tab" onclick="switchTab('tab-webhook')">WEBHOOK</div>
   </div>
   <div class="admin-body">
 
@@ -435,6 +458,7 @@ Equipe Ultra Pack 3D</textarea>
         <div class="admin-field"><label>Nome</label><input type="text" id="new-student-name" placeholder="Joao Silva"></div>
         <div class="admin-field"><label>E-mail</label><input type="email" id="new-student-email" placeholder="joao@exemplo.com"></div>
         <div class="admin-field"><label>Senha inicial</label><input type="text" id="new-student-pass" placeholder="senha123"></div>
+        <div class="admin-field"><label>Produto a liberar</label><select id="new-student-product" style="width:100%;padding:9px 11px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;color:#fff;font-size:13px;"><option value="">-- Nenhum (acesso padrao) --</option></select></div>
         <button class="btn-save-admin" onclick="addStudent()" style="background:linear-gradient(135deg,#2DB56F,#1a8a50);">ADICIONAR ALUNO</button>
       </div>
       <div class="admin-section" style="margin-top:20px;">
@@ -463,6 +487,46 @@ Equipe Ultra Pack 3D</textarea>
         <h3>Webhook Checkout</h3>
         <div class="admin-field"><label>URL do webhook (backend)</label><input type="text" id="cfg-webhook-url" placeholder="https://seusite.com/webhook"></div>
         <div style="margin-top:4px;"><span class="status-badge warn">Configure na plataforma de checkout</span></div>
+      </div>
+    </div>
+
+    <!-- TAB PRODUTOS -->
+    <div class="tab-content" id="tab-produtos">
+      <div class="admin-section">
+        <h3>Criar novo produto</h3>
+        <div class="admin-field"><label>Nome do produto</label><input type="text" id="new-product-name" placeholder="Ex: Ultrapack Completo"></div>
+        <div class="admin-field"><label>ID do checkout (Kiwify/Hotmart/etc)</label><input type="text" id="new-product-checkout-id" placeholder="Ex: kiwify_abc123 ou hotmart_xyz"></div>
+        <div class="admin-field"><label>Cards liberados por este produto</label><div class="course-checkbox-list" id="product-course-checkboxes"><p style="font-size:12px;color:var(--text-muted);padding:4px;">Carregando...</p></div></div>
+        <button class="btn-save-admin" onclick="createProduct()" style="background:linear-gradient(135deg,#2DB56F,#1a8a50);">CRIAR PRODUTO</button>
+      </div>
+      <div class="admin-section">
+        <h3>Produtos cadastrados (<span id="product-count">0</span>)</h3>
+        <div id="products-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB WEBHOOK -->
+    <div class="tab-content" id="tab-webhook">
+      <div class="admin-section">
+        <h3>URL do Webhook</h3>
+        <div style="background:rgba(45,181,111,0.08);border:1px solid rgba(45,181,111,0.25);border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--text-secondary);line-height:2;">
+          Cole esta URL no seu checkout:<br>
+          <span id="webhook-url-display" onclick="copyWebhookUrl()" style="color:#2DB56F;font-size:11px;word-break:break-all;cursor:pointer;" title="Clique para copiar">https://uejtxeqyqqunqhspylmh.supabase.co/functions/v1/webhook-checkout</span>
+          <br><button onclick="copyWebhookUrl()" style="margin-top:6px;background:none;border:1px solid rgba(45,181,111,0.4);border-radius:6px;color:#2DB56F;cursor:pointer;padding:4px 12px;font-size:11px;">Copiar URL</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">
+          <span class="status-badge ok">Kiwify</span>
+          <span class="status-badge ok">Hotmart</span>
+          <span class="status-badge ok">Monetizze</span>
+          <span class="status-badge ok">Eduzz</span>
+          <span class="status-badge warn">JSON generico</span>
+        </div>
+        <h3>Log de chegadas (<span id="webhook-log-count">0</span>)</h3>
+        <div style="display:flex;gap:6px;margin-bottom:10px;">
+          <button class="btn-save-admin" onclick="loadWebhookLogs()" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text-secondary);">ATUALIZAR</button>
+          <button class="btn-save-admin" onclick="clearWebhookLogs()" style="background:rgba(232,48,48,0.08);border:1px solid rgba(232,48,48,0.3);color:var(--accent-red);">LIMPAR LOGS</button>
+        </div>
+        <div id="webhook-logs-list"></div>
       </div>
     </div>
 
@@ -666,9 +730,17 @@ function startApp(user) {
   document.getElementById('user-display-name').textContent = user.name;
   if (user.role === 'admin') { document.getElementById('admin-fab').style.display = 'flex'; }
   applyConfig();
-  renderCourses();
-  renderAdminCoursesList();
-  renderStudentsList();
+  if (user.role === 'admin') {
+    renderCourseSection('scroll1', loadCourses(1), null);
+    renderCourseSection('scroll2', loadCourses(2), null);
+    renderAdminCoursesList();
+    renderStudentsList();
+  } else {
+    getMemberAllowedCourseRefs(user.email).then(function(refs) {
+      renderCourseSection('scroll1', loadCourses(1), refs);
+      renderCourseSection('scroll2', loadCourses(2), refs);
+    });
+  }
 }
 
 // ===== APPLY CONFIG =====
@@ -710,21 +782,27 @@ document.getElementById('cfg-color-hex').addEventListener('input', function() {
 
 // ===== RENDER COURSES =====
 function renderCourses() {
-  renderCourseSection('scroll1', loadCourses(1));
-  renderCourseSection('scroll2', loadCourses(2));
+  var refs = null; // admin sees all
+  renderCourseSection('scroll1', loadCourses(1), refs);
+  renderCourseSection('scroll2', loadCourses(2), refs);
 }
 
-function renderCourseSection(containerId, courses) {
+function renderCourseSection(containerId, courses, allowedRefs) {
   var container = document.getElementById(containerId);
   container.innerHTML = '';
   courses.forEach(function(course) {
+    var effectiveLocked = course.locked;
+    // If allowedRefs is an array (student with products), use it to determine access
+    if (allowedRefs !== null && allowedRefs !== undefined) {
+      effectiveLocked = !allowedRefs.includes(String(course.id));
+    }
     var div = document.createElement('div');
-    div.className = 'course-card' + (course.locked ? ' locked' : '');
+    div.className = 'course-card' + (effectiveLocked ? ' locked' : '');
     div.dataset.id = course.id;
     var progressBar = course.progress > 0 ? '<div class="progress-bar"><div class="progress-fill" style="width:'+course.progress+'%"></div></div>' : '';
-    var lockBadge = course.locked ? '<div class="course-locked-badge">&#128274;</div>' : '';
+    var lockBadge = effectiveLocked ? '<div class="course-locked-badge">&#128274;</div>' : '';
     div.innerHTML = '<div class="card-img-wrap"><img src="'+course.thumb+'" alt="'+course.title.replace(/\n/g,' ')+'" loading="lazy" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 3%22><rect fill=%22%23161820%22 width=%222%22 height=%223%22/></svg>\'">' + progressBar + lockBadge + '</div>';
-    if (course.locked) {
+    if (effectiveLocked) {
       div.onclick = function(){ showToast('Este modulo ainda nao foi liberado.', 'info'); };
     } else {
       (function(id){ div.onclick = function(){ openCourseModal(id); }; })(course.id);
@@ -894,10 +972,13 @@ function switchTab(tabId) {
   document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.remove('active'); });
   document.querySelectorAll('.admin-tab').forEach(function(t){ t.classList.remove('active'); });
   document.getElementById(tabId).classList.add('active');
-  var tabs = ['tab-geral','tab-cursos','tab-email','tab-acesso','tab-integ'];
+  var tabs = ['tab-geral','tab-cursos','tab-email','tab-acesso','tab-integ','tab-produtos','tab-webhook'];
   var idx = tabs.indexOf(tabId);
   var tabEls = document.querySelectorAll('.admin-tab');
   if (tabEls[idx]) tabEls[idx].classList.add('active');
+  if (tabId === 'tab-produtos') { renderProductCheckboxes(); renderProductsList(); populateProductSelect(); }
+  if (tabId === 'tab-webhook') { loadWebhookLogs(); }
+  if (tabId === 'tab-acesso') { populateProductSelect(); }
 }
 
 // ===== SAVE FUNCTIONS =====
@@ -1026,20 +1107,26 @@ async function addStudent() {
   var name = document.getElementById('new-student-name').value.trim();
   var email = document.getElementById('new-student-email').value.trim().toLowerCase();
   var pass = document.getElementById('new-student-pass').value.trim();
+  var productId = document.getElementById('new-student-product') ? document.getElementById('new-student-product').value : '';
   if (!name || !email || !pass) { showToast('Preencha todos os campos!', 'err'); return; }
 
   if (supabaseClient) {
     try {
-      var resp = await supabaseClient.from('members').insert([{ name: name, email: email, pass: pass, role: 'student' }]);
+      var resp = await supabaseClient.from('members').insert([{ name: name, email: email, pass: pass, role: 'student' }]).select().single();
       if (resp.error) throw resp.error;
-      showToast('Aluno "'+name+'" adicionado no Supabase!', 'ok');
+      var memberId = resp.data.id;
+      if (productId) {
+        await supabaseClient.from('member_products').insert([{ member_id: memberId, product_id: productId }]);
+      }
+      showToast('Aluno "'+name+'" adicionado!', 'ok');
       await sendWelcomeEmail(name, email, pass);
       document.getElementById('new-student-name').value='';
       document.getElementById('new-student-email').value='';
       document.getElementById('new-student-pass').value='';
+      if (document.getElementById('new-student-product')) document.getElementById('new-student-product').value = '';
       renderStudentsList();
       return;
-    } catch(e) { showToast('Supabase: ' + (e.message||e) + '. Salvando local.', 'info'); }
+    } catch(e) { showToast('Supabase: ' + (e.message||e), 'err'); return; }
   }
 
   var students = loadStudents();
@@ -1053,7 +1140,7 @@ async function addStudent() {
   document.getElementById('new-student-email').value='';
   document.getElementById('new-student-pass').value='';
   renderStudentsList();
-  showToast('Aluno "'+name+'" adicionado!', 'ok');
+  showToast('Aluno "'+name+'" adicionado (local)!', 'ok');
 }
 
 async function renderStudentsList() {
@@ -1080,6 +1167,155 @@ async function removeStudent(email) {
   saveStudents(students);
   renderStudentsList();
   showToast('Aluno removido.', 'ok');
+}
+
+// ===== PRODUCTS =====
+var cachedProducts = [];
+
+async function loadAllProducts() {
+  if (!supabaseClient) return [];
+  try {
+    var r = await supabaseClient.from('products').select('id, name, checkout_id, product_courses(course_ref)').order('created_at');
+    return r.data || [];
+  } catch(e) { return []; }
+}
+
+async function renderProductsList() {
+  var products = await loadAllProducts();
+  cachedProducts = products;
+  var el = document.getElementById('products-list');
+  var countEl = document.getElementById('product-count');
+  if (!el) return;
+  if (countEl) countEl.textContent = products.length;
+  if (products.length === 0) {
+    el.innerHTML = '<p style="font-size:12px;color:var(--text-muted);padding:8px 0;">Nenhum produto cadastrado ainda.</p>';
+    return;
+  }
+  var allCourses = loadCourses(1).concat(loadCourses(2));
+  el.innerHTML = products.map(function(p) {
+    var refs = (p.product_courses || []).map(function(pc){ return String(pc.course_ref); });
+    var tags = refs.map(function(ref) {
+      var c = allCourses.find(function(x){ return String(x.id) === ref; });
+      return c ? '<span class="product-course-tag">' + c.title.replace(/\n/g,' ').slice(0,28) + '...</span>' : '';
+    }).filter(Boolean).join('');
+    return '<div class="product-card">' +
+      '<div class="product-card-header"><span class="product-name">' + p.name + '</span>' +
+      '<button onclick="deleteProduct(\''+p.id+'\')" style="background:none;border:1px solid var(--border);border-radius:5px;color:#555b6e;cursor:pointer;padding:3px 8px;font-size:11px;">X</button></div>' +
+      '<div class="product-id-badge">checkout_id: ' + (p.checkout_id || 'nao definido') + '</div>' +
+      (tags ? '<div class="product-courses-wrap">' + tags + '</div>' : '<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Nenhum card vinculado</div>') +
+      '</div>';
+  }).join('');
+}
+
+function renderProductCheckboxes() {
+  var allCourses = loadCourses(1).concat(loadCourses(2));
+  var el = document.getElementById('product-course-checkboxes');
+  if (!el) return;
+  el.innerHTML = allCourses.map(function(c) {
+    return '<label class="course-checkbox-item"><input type="checkbox" name="product-course-cb" value="'+c.id+'"><span>'+c.title.replace(/\n/g,' ')+'</span></label>';
+  }).join('');
+}
+
+async function createProduct() {
+  var name = document.getElementById('new-product-name').value.trim();
+  var checkoutId = document.getElementById('new-product-checkout-id').value.trim();
+  if (!name) { showToast('Informe o nome do produto.', 'err'); return; }
+  if (!supabaseClient) { showToast('Supabase nao conectado.', 'err'); return; }
+  var checked = Array.from(document.querySelectorAll('input[name="product-course-cb"]:checked')).map(function(el){ return String(el.value); });
+  try {
+    var r = await supabaseClient.from('products').insert([{ name: name, checkout_id: checkoutId || null }]).select().single();
+    if (r.error) throw r.error;
+    var productId = r.data.id;
+    if (checked.length > 0) {
+      var rows = checked.map(function(ref){ return { product_id: productId, course_ref: ref }; });
+      await supabaseClient.from('product_courses').insert(rows);
+    }
+    document.getElementById('new-product-name').value = '';
+    document.getElementById('new-product-checkout-id').value = '';
+    document.querySelectorAll('input[name="product-course-cb"]').forEach(function(cb){ cb.checked = false; });
+    showToast('Produto "'+name+'" criado com ' + checked.length + ' card(s)!', 'ok');
+    renderProductsList();
+    populateProductSelect();
+  } catch(e) { showToast('Erro: ' + (e.message||e), 'err'); }
+}
+
+async function deleteProduct(id) {
+  if (!confirm('Remover este produto? Alunos vinculados perderao o acesso.')) return;
+  try {
+    await supabaseClient.from('products').delete().eq('id', id);
+    showToast('Produto removido.', 'ok');
+    renderProductsList();
+    populateProductSelect();
+  } catch(e) { showToast('Erro: ' + (e.message||e), 'err'); }
+}
+
+async function populateProductSelect() {
+  var sel = document.getElementById('new-student-product');
+  if (!sel) return;
+  var products = cachedProducts.length > 0 ? cachedProducts : await loadAllProducts();
+  cachedProducts = products;
+  sel.innerHTML = '<option value="">-- Nenhum --</option>' + products.map(function(p){
+    return '<option value="'+p.id+'">'+p.name+'</option>';
+  }).join('');
+}
+
+// ===== MEMBER PRODUCT ACCESS CONTROL =====
+async function getMemberAllowedCourseRefs(email) {
+  if (!supabaseClient) return null;
+  try {
+    var mr = await supabaseClient.from('members').select('id').eq('email', email).single();
+    if (!mr.data) return null;
+    var memberId = mr.data.id;
+    var mpr = await supabaseClient.from('member_products').select('product_id').eq('member_id', memberId);
+    if (!mpr.data || mpr.data.length === 0) return null;
+    var productIds = mpr.data.map(function(mp){ return mp.product_id; });
+    var pcr = await supabaseClient.from('product_courses').select('course_ref').in('product_id', productIds);
+    if (!pcr.data) return [];
+    return pcr.data.map(function(pc){ return String(pc.course_ref); });
+  } catch(e) { return null; }
+}
+
+// ===== WEBHOOK LOGS =====
+function copyWebhookUrl() {
+  var url = 'https://uejtxeqyqqunqhspylmh.supabase.co/functions/v1/webhook-checkout';
+  navigator.clipboard.writeText(url).then(function(){ showToast('URL copiada!', 'ok'); }).catch(function(){ showToast('Copie manualmente: ' + url, 'info', 6000); });
+}
+
+async function loadWebhookLogs() {
+  var el = document.getElementById('webhook-logs-list');
+  var countEl = document.getElementById('webhook-log-count');
+  if (!el) return;
+  if (!supabaseClient) { el.innerHTML = '<p style="font-size:12px;color:var(--text-muted);">Supabase nao conectado.</p>'; return; }
+  el.innerHTML = '<p style="font-size:12px;color:var(--text-muted);">Carregando...</p>';
+  try {
+    var r = await supabaseClient.from('webhook_logs').select('*').order('created_at', { ascending: false }).limit(50);
+    var logs = r.data || [];
+    if (countEl) countEl.textContent = logs.length;
+    if (logs.length === 0) {
+      el.innerHTML = '<p style="font-size:12px;color:var(--text-muted);padding:12px 0;text-align:center;">Nenhuma chegada ainda. Cole a URL no seu checkout.</p>';
+      return;
+    }
+    el.innerHTML = logs.map(function(log) {
+      var date = new Date(log.created_at).toLocaleString('pt-BR');
+      var statusClass = log.status === 'error' ? 'err' : 'ok';
+      return '<div class="wh-log-item ' + statusClass + '">' +
+        '<div class="wh-log-meta"><span class="wh-log-platform">' + (log.platform || 'UNKNOWN') + '</span>' +
+        '<span class="status-badge ' + statusClass + '">' + (log.status || 'received') + '</span>' +
+        '<span class="wh-log-date">' + date + '</span></div>' +
+        '<div class="wh-log-email">' + (log.member_email || '-') + '</div>' +
+        '<div class="wh-log-product">' + (log.product_name || 'produto nao identificado') + '</div>' +
+        '</div>';
+    }).join('');
+  } catch(e) { el.innerHTML = '<p style="font-size:12px;color:var(--accent-red);">Erro: ' + e.message + '</p>'; }
+}
+
+async function clearWebhookLogs() {
+  if (!confirm('Limpar todos os logs de webhook?')) return;
+  try {
+    await supabaseClient.from('webhook_logs').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    showToast('Logs limpos!', 'ok');
+    loadWebhookLogs();
+  } catch(e) { showToast('Erro: ' + (e.message||e), 'err'); }
 }
 
 // ===== ADMIN COURSES =====
