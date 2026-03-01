@@ -534,11 +534,17 @@ Equipe Ultra Pack 3D</textarea>
 
 <script>
 // ===== SUPABASE =====
+const SUPABASE_URL = 'https://uejtxeqyqqunqhspylmh.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_4UHg3VhBeGdDCdouKw-6Ow_kQga7Phw';
 let supabaseClient = null;
 function initSupabase() {
-  const cfg = loadConfig();
-  if (cfg.supabase_url && cfg.supabase_key) {
-    try { supabaseClient = supabase.createClient(cfg.supabase_url, cfg.supabase_key); } catch(e) { supabaseClient = null; }
+  var cfg = loadConfig();
+  var url = cfg.supabase_url || SUPABASE_URL;
+  var key = cfg.supabase_key || SUPABASE_KEY;
+  if (url && key) {
+    try { supabaseClient = supabase.createClient(url, key); } catch(e) { supabaseClient = null; }
+    // Persist so admin INTEG. tab shows the values
+    if (!cfg.supabase_url) saveConfig({ supabase_url: url, supabase_key: key });
   }
 }
 
