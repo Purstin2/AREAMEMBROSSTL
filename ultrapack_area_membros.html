@@ -65,14 +65,12 @@ body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: v
 .section-title { font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 700; color: var(--text-secondary); margin-bottom: 14px; letter-spacing: 1.5px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
 .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 /* SCROLL */
-.courses-scroll-wrap { position: relative; padding: 0 34px; }
-.courses-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; scroll-behavior: smooth; scrollbar-width: none; }
+.courses-scroll-wrap { display: flex; align-items: center; gap: 6px; }
+.courses-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; scroll-behavior: smooth; scrollbar-width: none; flex: 1; min-width: 0; }
 .courses-scroll::-webkit-scrollbar { display: none; }
 /* SCROLL BUTTONS */
-.scroll-btn { position: absolute; top: 50%; transform: translateY(-60%); width: 28px; height: 52px; border-radius: 6px; background: rgba(13,14,18,0.92); border: 1px solid var(--border); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 5; transition: background 0.15s, opacity 0.15s; font-size: 18px; font-weight: bold; opacity: 0.85; }
+.scroll-btn { flex-shrink: 0; width: 30px; height: 56px; border-radius: 6px; background: rgba(13,14,18,0.92); border: 1px solid var(--border); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s, opacity 0.15s; font-size: 20px; font-weight: bold; opacity: 0.85; }
 .scroll-btn:hover { background: var(--accent-orange); border-color: var(--accent-orange); opacity: 1; }
-.scroll-btn.left { left: 0; }
-.scroll-btn.right { right: 0; }
 /* COURSE CARD */
 .course-card { flex-shrink: 0; width: 160px; border-radius: 8px; overflow: hidden; cursor: pointer; position: relative; transition: transform 0.2s, box-shadow 0.2s; background: var(--bg-card); }
 .course-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.6); }
@@ -218,7 +216,7 @@ footer a { color: #2DB56F; text-decoration: none; }
   #main { margin-left: 0; padding-top: 56px; }
   .banner { height: 160px; }
   .section { padding: 16px 12px 6px; }
-  .courses-scroll-wrap { padding: 0 30px; }
+  .courses-scroll-wrap { gap: 4px; }
   .course-card { width: 130px; }
   #admin-panel { width: 100%; }
   .course-modal-box { max-width: 100%; border-radius: 12px 12px 0 0; margin-top: auto; }
